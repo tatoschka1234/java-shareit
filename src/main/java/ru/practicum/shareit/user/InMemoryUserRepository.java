@@ -26,7 +26,7 @@ public class InMemoryUserRepository implements UserRepository {
     public User findById(Long id) {
         User user = users.get(id);
         if (user == null) {
-            throw new NotFoundException("User with id " + id + " not found.");
+            throw new NotFoundException("User with id " + id + " not found");
         }
         return user;
     }
