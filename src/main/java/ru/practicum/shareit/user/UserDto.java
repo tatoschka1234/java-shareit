@@ -6,8 +6,12 @@ import lombok.Data;
 
 @Data
 public class UserDto {
-    public interface Create {}
-    public interface Update {}
+    public interface Create {
+    }
+
+    public interface Update {
+    }
+
     private Long id;
     private String name;
 
