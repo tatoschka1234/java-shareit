@@ -1,5 +1,7 @@
 package ru.practicum.shareit.user;
 
+import ru.practicum.shareit.user.model.User;
+
 import java.util.List;
 
 public interface UserRepository {
@@ -10,4 +12,6 @@ public interface UserRepository {
     List<User> findAll();
 
     void delete(Long id);
+
+    boolean existsByEmail(String email);
 }

@@ -20,4 +20,17 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleAccessDenied(AccessDeniedException e) {
         return new ErrorResponse("Access denied", e.getMessage());
     }
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleInternalServerError(Exception e) {
+        return new ErrorResponse("Internal server error", e.getMessage());
+    }
+
+    @ExceptionHandler(AlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleAlreadyExists(AlreadyExistsException e) {
+        return new ErrorResponse("Conflict!", e.getMessage());
+    }
+
 }
