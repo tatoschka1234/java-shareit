@@ -60,13 +60,6 @@ public class BookingServiceImpl implements BookingService {
                 .orElseThrow(() -> new NotFoundException("Booking not found"));
     }
 
-    @Override
-    public List<BookingDto> getAll() {
-        return bookingRepository.findAll().stream()
-                .map(BookingMapper::toDto)
-                .collect(Collectors.toList());
-    }
-
     private void validateDates(LocalDateTime start, LocalDateTime end) {
         if (start == null || end == null) {
             throw new ValidationException("Booking start and end must be provided.");

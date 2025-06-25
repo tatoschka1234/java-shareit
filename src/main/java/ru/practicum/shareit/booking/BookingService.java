@@ -10,8 +10,6 @@ public interface BookingService {
 
     BookingDto getById(Long id);
 
-    List<BookingDto> getAll();
-
     BookingDto approve(Long bookingId, Long ownerId, boolean approved);
 
     List<BookingDto> getBookingsByUser(Long userId);
