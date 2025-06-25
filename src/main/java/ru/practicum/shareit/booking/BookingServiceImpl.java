@@ -4,6 +4,7 @@ import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingMapper;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
@@ -27,6 +28,7 @@ public class BookingServiceImpl implements BookingService {
     private final UserRepositoryJpa userRepository;
     private final ItemRepositoryJpa itemRepository;
 
+    @Transactional
     public BookingDto create(BookingRequestDto dto, Long bookerId) {
         validateDates(dto.getStart(), dto.getEnd());
 
@@ -74,6 +76,7 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 
+    @Transactional
     @Override
     public BookingDto approve(Long bookingId, Long ownerId, boolean approved) {
         Booking booking = bookingRepository.findById(bookingId)
