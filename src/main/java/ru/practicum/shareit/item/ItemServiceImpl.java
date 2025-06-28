@@ -17,6 +17,8 @@ import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.ItemRequest;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.UserRepositoryJpa;
 import ru.practicum.shareit.user.model.User;
 
@@ -35,6 +37,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepositoryJpa userRepository;
     private final BookingRepositoryJpa bookingRepository;
     private final CommentRepository commentRepository;
+    private final ItemRequestRepository requestRepository;
 
     private static final Sort SORT_BY_CREATED_DESC = Sort.by(Sort.Direction.DESC, "created");
     private static final Sort SORT_BY_START_DESC = Sort.by(Sort.Direction.DESC, "start");
@@ -47,7 +50,13 @@ public class ItemServiceImpl implements ItemService {
         User owner = userRepository.findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("User with id " + ownerId + " not found."));
 
-        Item item = ItemMapper.fromDto(itemDto, owner);
+        ItemRequest request = null;
+        if (itemDto.getRequestId() != null) {
+            request = requestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Request not found"));
+        }
+
+        Item item = ItemMapper.fromDto(itemDto, owner, request);
         return ItemMapper.toDto(itemRepository.save(item));
     }
 
