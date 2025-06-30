@@ -11,8 +11,6 @@ import ru.practicum.shareit.util.AppConstants;
 
 import java.util.List;
 
-import static ru.practicum.shareit.util.AppConstants.USER_ID;
-
 
 @Slf4j
 @RestController

@@ -21,18 +21,18 @@ public class CommentDtoJsonTest {
 
     @Test
     void testSerializeCommentDto() throws IOException {
-        String item_name = UUID.randomUUID().toString();
-        String author_name = UUID.randomUUID().toString();
-        Long dto_id = 1L;
-        Long item_id = 42L;
+        String itemName = UUID.randomUUID().toString();
+        String authorName = UUID.randomUUID().toString();
+        Long dtoId = 1L;
+        Long itemId = 42L;
         LocalDateTime created = LocalDateTime.of(2025, 6, 30, 12, 30, 0);
 
         CommentDto dto = new CommentDto();
-        dto.setId(dto_id);
-        dto.setText(item_name);
-        dto.setAuthorName(author_name);
+        dto.setId(dtoId);
+        dto.setText(itemName);
+        dto.setAuthorName(authorName);
         dto.setCreated(created);
-        dto.setItemId(item_id);
+        dto.setItemId(itemId);
 
         var jsonContent = json.write(dto);
 
@@ -42,11 +42,11 @@ public class CommentDtoJsonTest {
         assertThat(jsonContent).hasJsonPath("$.created");
         assertThat(jsonContent).hasJsonPath("$.itemId");
 
-        assertThat(jsonContent).extractingJsonPathNumberValue("$.id").isEqualTo(dto_id.intValue());
-        assertThat(jsonContent).extractingJsonPathStringValue("$.text").isEqualTo(item_name);
-        assertThat(jsonContent).extractingJsonPathStringValue("$.authorName").isEqualTo(author_name);
+        assertThat(jsonContent).extractingJsonPathNumberValue("$.id").isEqualTo(dtoId.intValue());
+        assertThat(jsonContent).extractingJsonPathStringValue("$.text").isEqualTo(itemName);
+        assertThat(jsonContent).extractingJsonPathStringValue("$.authorName").isEqualTo(authorName);
         assertThat(jsonContent).extractingJsonPathStringValue("$.created")
                 .isEqualTo(created.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        assertThat(jsonContent).extractingJsonPathNumberValue("$.itemId").isEqualTo(item_id.intValue());
+        assertThat(jsonContent).extractingJsonPathNumberValue("$.itemId").isEqualTo(itemId.intValue());
     }
 }

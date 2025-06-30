@@ -28,19 +28,19 @@ public class ItemDtoJsonTest {
 
         BookingShortDto lastBooking = new BookingShortDto(1L, 2L);
         BookingShortDto nextBooking = new BookingShortDto(3L, 4L);
-        String comment_text = UUID.randomUUID().toString();
-        String item_name = UUID.randomUUID().toString();
+        String commentText = UUID.randomUUID().toString();
+        String itemName = UUID.randomUUID().toString();
 
         CommentDto comment = new CommentDto();
         comment.setId(5L);
-        comment.setText(comment_text);
+        comment.setText(commentText);
         comment.setAuthorName("A");
         comment.setCreated(now);
         comment.setItemId(100L);
 
         ItemDto itemDto = new ItemDto();
         itemDto.setId(10L);
-        itemDto.setName(item_name);
+        itemDto.setName(itemName);
         itemDto.setDescription("cool cool cool cool");
         itemDto.setAvailable(true);
         itemDto.setOwnerId(99L);
@@ -52,10 +52,10 @@ public class ItemDtoJsonTest {
         JsonContent<ItemDto> result = json.write(itemDto);
 
         assertThat(result).hasJsonPath("$.id");
-        assertThat(result).hasJsonPath("$.name").extractingJsonPathStringValue("$.name").isEqualTo(item_name);
+        assertThat(result).hasJsonPath("$.name").extractingJsonPathStringValue("$.name").isEqualTo(itemName);
         assertThat(result).hasJsonPath("$.available").extractingJsonPathBooleanValue("$.available").isTrue();
         assertThat(result).hasJsonPath("$.lastBooking.id").extractingJsonPathNumberValue("$.lastBooking.id").isEqualTo(1);
-        assertThat(result).hasJsonPath("$.comments[0].text").extractingJsonPathStringValue("$.comments[0].text").isEqualTo(comment_text);
+        assertThat(result).hasJsonPath("$.comments[0].text").extractingJsonPathStringValue("$.comments[0].text").isEqualTo(commentText);
         assertThat(result).hasJsonPath("$.comments[0].created")
                 .extractingJsonPathStringValue("$.comments[0].created")
                 .isEqualTo(now.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));

@@ -51,7 +51,7 @@ class UserServiceImplIntegrationTest {
     @Test
     void getAll_shouldReturnAllUsers() {
         userService.create(userDto);
-        userService.create(createUserDto( "C D", "c@example.com"));
+        userService.create(createUserDto("C D", "c@example.com"));
 
         List<UserDto> users = userService.getAll();
         assertThat(users).hasSize(2);
