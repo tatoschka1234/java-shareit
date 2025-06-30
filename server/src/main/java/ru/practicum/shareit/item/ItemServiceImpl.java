@@ -77,6 +77,7 @@ public class ItemServiceImpl implements ItemService {
         return ItemMapper.toDto(itemRepository.save(existing));
     }
 
+    @Transactional(readOnly = true)
     @Override
     public ItemDto getById(Long id, Long requesterId) {
         Item item = itemRepository.findById(id)
