@@ -1,8 +1,5 @@
 package ru.practicum.shareit.request;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +8,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.request.dto.ItemRequestCreateDto;
 
-import java.util.Map;
 
 import static ru.practicum.shareit.util.AppConstants.USER_ID;
 
@@ -43,6 +39,5 @@ public class ItemRequestController {
         log.info("Get request {}, userId={}", requestId, userId);
         return requestClient.getRequestById(userId, requestId);
     }
-
 
 }
