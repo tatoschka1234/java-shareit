@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking;
 
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -10,6 +11,8 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.booking.model.Booking;
+import ru.practicum.shareit.exception.AccessDeniedException;
 import ru.practicum.shareit.item.ItemRepositoryJpa;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.UserRepositoryJpa;
@@ -35,9 +38,14 @@ class BookingServiceImplIntegrationTest {
     @Autowired
     private ItemRepositoryJpa itemRepository;
 
+    @Autowired
+    private BookingRepositoryJpa bookingRepository;
+
     private User owner;
     private User booker;
+    private User otherUser;
     private Item item;
+    private Booking booking;
 
     @BeforeEach
     void setup() {
@@ -112,5 +120,26 @@ class BookingServiceImplIntegrationTest {
 
         assertThat(bookings).hasSize(1);
         assertThat(bookings.get(0).getBooker().getId()).isEqualTo(booker.getId());
+    }
+
+    @Test
+    @DisplayName("approve() should throw AccessDeniedException when called by non-owner")
+    void approve_shouldThrowAccessDenied_whenUserIsNotOwner() {
+        otherUser = new User();
+        otherUser.setName("Other User");
+        otherUser.setEmail("other@example.com");
+        userRepository.save(otherUser);
+
+        booking = new Booking();
+        booking.setItem(item);
+        booking.setBooker(otherUser);
+        booking.setStatus(BookingStatus.WAITING);
+        booking.setStart(LocalDateTime.now().plusDays(1));
+        booking.setEnd(LocalDateTime.now().plusDays(2));
+        booking = bookingRepository.save(booking);
+
+        assertThatThrownBy(() -> bookingService.approve(booking.getId(), otherUser.getId(), true))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessageContaining("Only the owner can approve or reject booking.");
     }
 }

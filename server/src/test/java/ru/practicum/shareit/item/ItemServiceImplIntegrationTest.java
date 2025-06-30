@@ -1,7 +1,9 @@
 
 package ru.practicum.shareit.item;
 
+import jakarta.validation.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -12,6 +14,7 @@ import ru.practicum.shareit.booking.BookingRepositoryJpa;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.model.Booking;
 
+import ru.practicum.shareit.exception.AccessDeniedException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Comment;
@@ -24,6 +27,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SpringBootTest
 @AutoConfigureTestDatabase
@@ -47,6 +51,8 @@ class ItemServiceImplIntegrationTest {
     private CommentRepository commentRepository;
 
     private User owner;
+    private Item item;
+    private User otherUser;
 
     private static final String ITEM_NAME = "Item";
     private static final String ITEM_DESCRIPTION = "Super item";
@@ -61,7 +67,7 @@ class ItemServiceImplIntegrationTest {
 
     @Test
     void getByOwner_shouldReturnItemWithBookingsAndComments() {
-        Item item = new Item();
+        item = new Item();
         item.setName(ITEM_NAME);
         item.setDescription(ITEM_DESCRIPTION);
         item.setAvailable(true);
@@ -108,7 +114,7 @@ class ItemServiceImplIntegrationTest {
 
     @Test
     void update_shouldChangeItemFields() {
-        Item item = new Item();
+        item = new Item();
         item.setName("Old Name");
         item.setDescription("Old Desc");
         item.setAvailable(true);
@@ -130,7 +136,7 @@ class ItemServiceImplIntegrationTest {
     @Test
     void search_shouldReturnMatchingItems() {
         String itemName = "Hamburger";
-        Item item = new Item();
+        item = new Item();
         item.setName(itemName);
         item.setDescription("eat me!");
         item.setAvailable(true);
@@ -146,7 +152,7 @@ class ItemServiceImplIntegrationTest {
     @Test
     void addComment_shouldSaveCommentIfBooked() {
         String commentText = "Really cool!";
-        Item item = new Item();
+        item = new Item();
         item.setName(ITEM_NAME);
         item.setDescription(ITEM_DESCRIPTION);
         item.setAvailable(true);
@@ -169,5 +175,83 @@ class ItemServiceImplIntegrationTest {
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getText()).isEqualTo(commentText);
         assertThat(saved.getAuthorName()).isEqualTo(owner.getName());
+    }
+
+    @Test
+    @DisplayName("Should throw ValidationException if user hasn't booked the item before commenting")
+    void addComment_shouldThrowValidationException_ifNotBooked() {
+        item = new Item();
+        item.setName("Item");
+        item.setDescription("Descr");
+        item.setAvailable(true);
+        item.setOwner(owner);
+        item = itemRepository.save(item);
+
+        otherUser = new User();
+        otherUser.setName("Other");
+        otherUser.setEmail("other@example.com");
+        otherUser = userRepository.save(otherUser);
+
+        CommentDto comment = new CommentDto();
+        comment.setText("Nice!");
+
+        assertThatThrownBy(() -> itemService.addComment(item.getId(), otherUser.getId(), comment))
+                .isInstanceOf(ValidationException.class)
+                .hasMessageContaining("Only users who booked the item");
+    }
+
+    @Test
+    @DisplayName("Should return full ItemDto with bookings and comments")
+    void getById_shouldReturnItemDtoWithBookingsAndComments() {
+        item = new Item();
+        item.setName("Item");
+        item.setDescription("Descr");
+        item.setAvailable(true);
+        item.setOwner(owner);
+        item = itemRepository.save(item);
+
+        Booking booking = new Booking();
+        booking.setItem(item);
+        booking.setBooker(owner);
+        booking.setStart(LocalDateTime.now().minusDays(2));
+        booking.setEnd(LocalDateTime.now().minusDays(1));
+        booking.setStatus(BookingStatus.APPROVED);
+        bookingRepository.save(booking);
+
+        Comment comment = new Comment();
+        comment.setText("Old comment");
+        comment.setAuthor(owner);
+        comment.setItem(item);
+        comment.setCreated(LocalDateTime.now().minusDays(1));
+        commentRepository.save(comment);
+
+        ItemDto dto = itemService.getById(item.getId(), owner.getId());
+
+        assertThat(dto).isNotNull();
+        assertThat(dto.getComments()).hasSize(1);
+        assertThat(dto.getLastBooking()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Should throw AccessDeniedException if non-owner tries to update item")
+    void update_shouldThrowAccessDenied_ifNotOwner() {
+        ItemDto updateDto = new ItemDto();
+        updateDto.setName("Updated");
+
+        otherUser = new User();
+        otherUser.setName("Other");
+        otherUser.setEmail("other@example.com");
+        otherUser = userRepository.save(otherUser);
+
+        item = new Item();
+        item.setName("Item");
+        item.setDescription("Desc");
+        item.setAvailable(true);
+        item.setOwner(owner);
+        item = itemRepository.save(item);
+
+        assertThatThrownBy(() -> itemService.update(item.getId(), updateDto, otherUser.getId()))
+                .isInstanceOf(AccessDeniedException.class)
+                .hasMessageContaining("Only the owner can update");
     }
 }

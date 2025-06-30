@@ -1,14 +1,17 @@
 package ru.practicum.shareit.user;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.exception.AlreadyExistsException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.model.User;
 
 import java.util.List;
 
@@ -25,7 +28,12 @@ class UserServiceImplIntegrationTest {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private UserRepositoryJpa userRepository;
+
     private UserDto userDto;
+    private User user1;
+    private User user2;
 
     @BeforeEach
     void setUp() {
@@ -76,6 +84,29 @@ class UserServiceImplIntegrationTest {
         assertThatThrownBy(() -> userService.getById(saved.getId()))
                 .isInstanceOf(NotFoundException.class);
     }
+
+    @Test
+    @DisplayName("update() should throw AlreadyExistsException when email is already taken")
+    void updateUser_shouldThrowAlreadyExists_whenEmailTaken() {
+
+        user1 = new User();
+        user1.setName("Alice");
+        user1.setEmail("alice@example.com");
+        userRepository.save(user1);
+
+        user2 = new User();
+        user2.setName("Bob");
+        user2.setEmail("bob@example.com");
+        user2 = userRepository.save(user2);
+
+        UserDto updateDto = new UserDto();
+        updateDto.setEmail("alice@example.com");
+
+        assertThatThrownBy(() -> userService.update(user2.getId(), updateDto))
+                .isInstanceOf(AlreadyExistsException.class)
+                .hasMessageContaining("Email already exists");
+    }
+
 
     private UserDto createUserDto(String name, String email) {
         UserDto dto = new UserDto();
